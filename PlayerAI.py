@@ -42,7 +42,16 @@ class PlayerAI(BaseAI):
         You may adjust the input variables as you wish (though it is not necessary). Output has to be (x,y) coordinates.
         
         """
-        pass
+        max_score = float("-inf")
+        max_move = None
+
+        for possible_move in grid.get_neighbors(self.pos, only_available=True):
+            min_value = self._min_value(self._simulate_move(possible_move, self.player_num, grid), 5, "getMove")
+            if min_value > max_score:
+                max_score = min_value
+                max_move = possible_move
+
+        return max_move
 
     def getTrap(self, grid : Grid) -> tuple:
         """ 
@@ -58,7 +67,94 @@ class PlayerAI(BaseAI):
         You may adjust the input variables as you wish (though it is not necessary). Output has to be (x,y) coordinates.
         
         """
-        pass
+        max_score = float("-inf")
+        max_trap = None
+        opponent_pos = grid.find(self.getOpponentNum())
+
+        for possible_trap in grid.get_neighbors(opponent_pos, only_available=True):
+            min_value = self._min_value(self._simulate_trap(possible_trap, grid), 5, "getTrap")
+            if min_value > max_score:
+                max_score = min_value
+                max_trap = possible_trap
+
+        return max_trap
+
+    def getOpponentNum(self):
+        return 1 if self.player_num == 2 else 2
+
+    def _simulate_move(self, pos, player, grid):
+        grid_clone = grid.clone()
+        grid_clone.move(pos, player)
+
+        return grid_clone
+
+    def _simulate_trap(self, pos, grid):
+        grid_clone = grid.clone()
+        grid_clone.trap(pos)
+
+        return grid_clone
+
+    def _terminal_state(self, grid, depth):
+        # Restrict depth of tree search
+        if depth == 0:
+            return True
+
+        # Player is out of moves
+        opponent_num = self.getOpponentNum()
+        opponent_pos = grid.find(opponent_num)
+
+        if not grid.get_neighbors(opponent_pos, only_available=True) or not grid.get_neighbors(self.pos, only_available=True):
+            return True
+
+        return False
+
+    def _min_value(self, grid, depth, action):
+        if self._terminal_state(grid, depth):
+            return self._get_score(grid)
+
+        opponent_num = self.getOpponentNum()
+        opponent_pos = grid.find(opponent_num)
+        player_pos = grid.find(self.player_num)
+        score = float("inf")
+
+        if action == "getTrap":
+            for possible_move in grid.get_neighbors(opponent_pos, only_available=True):
+                max_value = self._max_value(self._simulate_move(possible_move, opponent_num, grid), depth - 1, action)
+                score = min(score, max_value)
+        elif action == "getMove":
+            for possible_trap in grid.get_neighbors(player_pos, only_available=True):
+                max_value = self._max_value(self._simulate_trap(possible_trap, grid), depth - 1, action)
+                score = min(score, max_value)
+
+        return score
+
+    def _max_value(self, grid, depth, action):
+        if self._terminal_state(grid, depth):
+            return self._get_score(grid)
+
+        opponent_num = self.getOpponentNum()
+        opponent_pos = grid.find(opponent_num)
+        player_pos = grid.find(self.player_num)
+        score = float("-inf")
+
+        if action == "getTrap":
+            for possible_trap in grid.get_neighbors(opponent_pos, only_available=True):
+                min_value = self._min_value(self._simulate_trap(possible_trap, grid), depth - 1, action)
+                score = max(score, min_value)
+        elif action == "getMove":
+            for possible_move in grid.get_neighbors(player_pos, only_available=True):
+                min_value = self._min_value(self._simulate_move(possible_move, grid), depth - 1, action)
+                score = max(score, min_value)
+
+        return score
+
+    def _get_score(self, grid):
+        opponent_pos = grid.find(self.getOpponentNum())
+        player_moves = len(grid.get_neighbors(self.pos, only_available=True))
+        opponent_moves = len(grid.get_neighbors(opponent_pos, only_available=True))
+
+        return float(player_moves - 2 * opponent_moves)
+
         
 
     
