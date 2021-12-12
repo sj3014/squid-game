@@ -15,6 +15,7 @@ class PlayerAI(BaseAI):
         super().__init__()
         self.pos = None
         self.player_num = None
+        self.depth = 4
     
     def getPosition(self):
         return self.pos
@@ -46,7 +47,7 @@ class PlayerAI(BaseAI):
         max_move = None
 
         for possible_move in grid.get_neighbors(self.pos, only_available=True):
-            min_value = self._min_value(self._simulate_move(possible_move, self.player_num, grid), 5, "getMove")
+            min_value = self._min_value(self._simulate_move(possible_move, self.player_num, grid), self.depth, "getMove")
             if min_value > max_score:
                 max_score = min_value
                 max_move = possible_move
@@ -72,7 +73,7 @@ class PlayerAI(BaseAI):
         opponent_pos = grid.find(self.getOpponentNum())
 
         for possible_trap in grid.get_neighbors(opponent_pos, only_available=True):
-            min_value = self._min_value(self._simulate_trap(possible_trap, grid), 5, "getTrap")
+            min_value = self._min_value(self._simulate_trap(possible_trap, grid), self.depth, "getTrap")
             if min_value > max_score:
                 max_score = min_value
                 max_trap = possible_trap
