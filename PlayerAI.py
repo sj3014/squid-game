@@ -143,7 +143,7 @@ class PlayerAI(BaseAI):
                 score = max(score, min_value)
         elif action == "getMove":
             for possible_move in grid.get_neighbors(player_pos, only_available=True):
-                min_value = self._min_value(self._simulate_move(possible_move, grid), depth - 1, action)
+                min_value = self._min_value(self._simulate_move(possible_move, self.player_num, grid), depth - 1, action)
                 score = max(score, min_value)
 
         return score
@@ -154,7 +154,3 @@ class PlayerAI(BaseAI):
         opponent_moves = len(grid.get_neighbors(opponent_pos, only_available=True))
 
         return float(player_moves - 2 * opponent_moves)
-
-        
-
-    
