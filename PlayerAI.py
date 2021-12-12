@@ -15,7 +15,7 @@ class PlayerAI(BaseAI):
         super().__init__()
         self.pos = None
         self.player_num = None
-        self.depth = 4
+        self.depth = 5
     
     def getPosition(self):
         return self.pos
@@ -151,7 +151,13 @@ class PlayerAI(BaseAI):
 
     def _get_score(self, grid):
         opponent_pos = grid.find(self.getOpponentNum())
+        empty_cell_num = len(grid.getAvailableCells())
+        cell_num = grid.getMap().shape[0] * grid.getMap().shape[1]
+        
         player_moves = len(grid.get_neighbors(self.pos, only_available=True))
         opponent_moves = len(grid.get_neighbors(opponent_pos, only_available=True))
 
-        return float(player_moves - 2 * opponent_moves)
+        if empty_cell_num / cell_num > 2/3:
+            return float(player_moves - 2 * opponent_moves)
+        else:
+            return float(player_moves * 2 - opponent_moves)
