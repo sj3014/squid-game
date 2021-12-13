@@ -178,14 +178,10 @@ class PlayerAI(BaseAI):
         my_coord = grid.find(self.player_num)
         opponent_coord = grid.find(3-self.player_num)
         x_diff, y_diff = abs(my_coord[0] - opponent_coord[0]), abs(my_coord[1] - opponent_coord[1]) 
-        """
-        if empty_cell_num / cell_num > 4/5:
-            return float(player_moves - 2 * opponent_moves)
-        else:
-            return float(player_moves * 2 - opponent_moves)
-        """
         
-        if x_diff + y_diff > 2:
-            return float(player_moves - 2 * opponent_moves)
+        add_penalty = True
+        if x_diff + y_diff > 2:     add_penalty = False
+        if empty_cell_num / cell_num > 1/2:
+            return float(player_moves - 2 * opponent_moves) - 100 if add_penalty else float(player_moves - 2 * opponent_moves)
         else:
-            return float(player_moves * 2 - opponent_moves)
+            return float(player_moves * 2 - opponent_moves) - 100 if add_penalty else float(player_moves * 2 - opponent_moves)
