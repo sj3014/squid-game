@@ -157,18 +157,17 @@ class PlayerAI(BaseAI):
         player_moves = len(grid.get_neighbors(self.pos, only_available=True))
         opponent_moves = len(grid.get_neighbors(opponent_pos, only_available=True))
 
-        #my_coord = grid.find(self.player_num)
-        #opponent_coord = grid.find(3-self.player_num)
-        #x_diff, y_diff = abs(my_coord[0] - opponent_coord[0]), abs(my_coord[1] - opponent_coord[1]) 
-        
-        if empty_cell_num / cell_num > 2/3:
-            return float(player_moves - 2 * opponent_moves)
-        else:
-            return float(player_moves * 2 - opponent_moves)
-        
+        my_coord = grid.find(self.player_num)
+        opponent_coord = grid.find(3-self.player_num)
+        x_diff, y_diff = abs(my_coord[0] - opponent_coord[0]), abs(my_coord[1] - opponent_coord[1]) 
         """
-        if x_diff > 3 and y_diff > 3:
+        if empty_cell_num / cell_num > 4/5:
             return float(player_moves - 2 * opponent_moves)
         else:
             return float(player_moves * 2 - opponent_moves)
         """
+        
+        if x_diff + y_diff > 2:
+            return float(player_moves - 2 * opponent_moves)
+        else:
+            return float(player_moves * 2 - opponent_moves)
