@@ -15,7 +15,7 @@ class PlayerAI(BaseAI):
         super().__init__()
         self.pos = None
         self.player_num = None
-        self.depth = 4
+        self.depth = 5
     
     def getPosition(self):
         return self.pos
@@ -46,8 +46,11 @@ class PlayerAI(BaseAI):
         max_score = float("-inf")
         max_move = None
 
+        alpha = float("-inf")
+        beta = float("inf")
+
         for possible_move in grid.get_neighbors(self.pos, only_available=True):
-            min_value = self._min_value(self._simulate_move(possible_move, self.player_num, grid), self.depth, "getMove")
+            min_value = self._min_value(self._simulate_move(possible_move, self.player_num, grid), self.depth, "getMove", alpha, beta)
             if min_value > max_score:
                 max_score = min_value
                 max_move = possible_move
@@ -72,8 +75,11 @@ class PlayerAI(BaseAI):
         max_trap = None
         opponent_pos = grid.find(self.getOpponentNum())
 
+        alpha = float("-inf")
+        beta = float("inf")
+
         for possible_trap in grid.get_neighbors(opponent_pos, only_available=True):
-            min_value = self._min_value(self._simulate_trap(possible_trap, grid), self.depth, "getTrap")
+            min_value = self._min_value(self._simulate_trap(possible_trap, grid), self.depth, "getTrap", alpha, beta)
             if min_value > max_score:
                 max_score = min_value
                 max_trap = possible_trap
@@ -109,7 +115,7 @@ class PlayerAI(BaseAI):
 
         return False
 
-    def _min_value(self, grid, depth, action):
+    def _min_value(self, grid, depth, action, alpha, beta):
         if self._terminal_state(grid, depth):
             return self._get_score(grid)
 
@@ -120,16 +126,22 @@ class PlayerAI(BaseAI):
 
         if action == "getTrap":
             for possible_move in grid.get_neighbors(opponent_pos, only_available=True):
-                max_value = self._max_value(self._simulate_move(possible_move, opponent_num, grid), depth - 1, action)
+                max_value = self._max_value(self._simulate_move(possible_move, opponent_num, grid), depth - 1, action, alpha, beta)
                 score = min(score, max_value)
+                beta = min(beta, score)
+                if beta <= alpha:
+                    break
         elif action == "getMove":
             for possible_trap in grid.get_neighbors(player_pos, only_available=True):
-                max_value = self._max_value(self._simulate_trap(possible_trap, grid), depth - 1, action)
+                max_value = self._max_value(self._simulate_trap(possible_trap, grid), depth - 1, action, alpha, beta)
                 score = min(score, max_value)
+                beta = min(beta, score)
+                if beta <= alpha:
+                    break
 
         return score
 
-    def _max_value(self, grid, depth, action):
+    def _max_value(self, grid, depth, action, alpha, beta):
         if self._terminal_state(grid, depth):
             return self._get_score(grid)
 
@@ -140,12 +152,18 @@ class PlayerAI(BaseAI):
 
         if action == "getTrap":
             for possible_trap in grid.get_neighbors(opponent_pos, only_available=True):
-                min_value = self._min_value(self._simulate_trap(possible_trap, grid), depth - 1, action)
+                min_value = self._min_value(self._simulate_trap(possible_trap, grid), depth - 1, action, alpha, beta)
                 score = max(score, min_value)
+                alpha = max(score, alpha)
+                if beta <= alpha:
+                    break
         elif action == "getMove":
             for possible_move in grid.get_neighbors(player_pos, only_available=True):
-                min_value = self._min_value(self._simulate_move(possible_move, self.player_num, grid), depth - 1, action)
+                min_value = self._min_value(self._simulate_move(possible_move, self.player_num, grid), depth - 1, action, alpha, beta)
                 score = max(score, min_value)
+                alpha = max(score, alpha)
+                if beta <= alpha:
+                    break
 
         return score
 
