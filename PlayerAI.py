@@ -168,7 +168,7 @@ class PlayerAI(BaseAI):
             return float(player_moves * 2 - opponent_moves)
         """
 
-        if x_diff > 3 and y_diff > 3:
+        if x_diff > 2 and y_diff > 2:
             return float(player_moves - 2 * opponent_moves)
         else:
             return float(player_moves * 2 - opponent_moves)
