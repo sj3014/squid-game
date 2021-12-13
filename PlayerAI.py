@@ -151,24 +151,24 @@ class PlayerAI(BaseAI):
 
     def _get_score(self, grid):
         opponent_pos = grid.find(self.getOpponentNum())
-        #empty_cell_num = len(grid.getAvailableCells())
-        #cell_num = grid.getMap().shape[0] * grid.getMap().shape[1]
+        empty_cell_num = len(grid.getAvailableCells())
+        cell_num = grid.getMap().shape[0] * grid.getMap().shape[1]
         
         player_moves = len(grid.get_neighbors(self.pos, only_available=True))
         opponent_moves = len(grid.get_neighbors(opponent_pos, only_available=True))
 
-        my_coord = grid.find(self.player_num)
-        opponent_coord = grid.find(3-self.player_num)
-        x_diff, y_diff = abs(my_coord[0] - opponent_coord[0]), abs(my_coord[1] - opponent_coord[1]) 
-
-        """
+        #my_coord = grid.find(self.player_num)
+        #opponent_coord = grid.find(3-self.player_num)
+        #x_diff, y_diff = abs(my_coord[0] - opponent_coord[0]), abs(my_coord[1] - opponent_coord[1]) 
+        
         if empty_cell_num / cell_num > 2/3:
             return float(player_moves - 2 * opponent_moves)
         else:
             return float(player_moves * 2 - opponent_moves)
+        
         """
-
-        if x_diff > 2 and y_diff > 2:
+        if x_diff > 3 and y_diff > 3:
             return float(player_moves - 2 * opponent_moves)
         else:
             return float(player_moves * 2 - opponent_moves)
+        """
