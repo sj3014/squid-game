@@ -5,6 +5,7 @@ import sys
 import os 
 from BaseAI import BaseAI
 from Grid import Grid
+from Utils import *
 
 # TO BE IMPLEMENTED
 # 
@@ -49,8 +50,9 @@ class PlayerAI(BaseAI):
         alpha = float("-inf")
         beta = float("inf")
 
+        start_time = time.process_time()
         for possible_move in grid.get_neighbors(self.pos, only_available=True):
-            min_value = self._min_value(self._simulate_move(possible_move, self.player_num, grid), self.depth, "getMove", alpha, beta)
+            min_value = self._min_value(self._simulate_move(possible_move, self.player_num, grid), self.depth, "getMove", alpha, beta, start_time)
             if min_value > max_score:
                 max_score = min_value
                 max_move = possible_move
@@ -78,8 +80,9 @@ class PlayerAI(BaseAI):
         alpha = float("-inf")
         beta = float("inf")
 
+        start_time = time.process_time()
         for possible_trap in grid.get_neighbors(opponent_pos, only_available=True):
-            min_value = self._min_value(self._simulate_trap(possible_trap, grid), self.depth, "getTrap", alpha, beta)
+            min_value = self._min_value(self._simulate_trap(possible_trap, grid), self.depth, "getTrap", alpha, beta, start_time)
             if min_value > max_score:
                 max_score = min_value
                 max_trap = possible_trap
@@ -115,7 +118,13 @@ class PlayerAI(BaseAI):
 
         return False
 
-    def _min_value(self, grid, depth, action, alpha, beta):
+    def _min_value(self, grid, depth, action, alpha, beta, start_time):
+        if action == "getTrap":
+            if time.process_time() - start_time >= 2:
+                return self._get_score(grid)
+        elif action == "getMove":
+            if time.process_time() - start_time >= 3:
+                return self._get_score(grid)
         if self._terminal_state(grid, depth):
             return self._get_score(grid)
 
@@ -126,14 +135,15 @@ class PlayerAI(BaseAI):
 
         if action == "getTrap":
             for possible_move in grid.get_neighbors(opponent_pos, only_available=True):
-                max_value = self._max_value(self._simulate_move(possible_move, opponent_num, grid), depth - 1, action, alpha, beta)
+                max_value = self._max_value(self._simulate_move(possible_move, opponent_num, grid), depth - 1, action, alpha, beta, start_time)
                 score = min(score, max_value)
                 beta = min(beta, score)
                 if beta <= alpha:
                     break
         elif action == "getMove":
             for possible_trap in grid.get_neighbors(player_pos, only_available=True):
-                max_value = self._max_value(self._simulate_trap(possible_trap, grid), depth - 1, action, alpha, beta)
+                p = 1 - 0.05*(manhattan_distance(player_pos, possible_trap) - 1)
+                max_value = p * self._max_value(self._simulate_trap(possible_trap, grid), depth - 1, action, alpha, beta, start_time)
                 score = min(score, max_value)
                 beta = min(beta, score)
                 if beta <= alpha:
@@ -141,7 +151,14 @@ class PlayerAI(BaseAI):
 
         return score
 
-    def _max_value(self, grid, depth, action, alpha, beta):
+    def _max_value(self, grid, depth, action, alpha, beta, start_time):
+        if action == "getTrap":
+            if time.process_time() - start_time >= 2:
+                return self._get_score(grid)
+        elif action == "getMove":
+            if time.process_time() - start_time >= 3:
+                return self._get_score(grid)
+
         if self._terminal_state(grid, depth):
             return self._get_score(grid)
 
@@ -152,14 +169,15 @@ class PlayerAI(BaseAI):
 
         if action == "getTrap":
             for possible_trap in grid.get_neighbors(opponent_pos, only_available=True):
-                min_value = self._min_value(self._simulate_trap(possible_trap, grid), depth - 1, action, alpha, beta)
+                p = 1 - 0.05*(manhattan_distance(opponent_pos, possible_trap) - 1)
+                min_value = p * self._min_value(self._simulate_trap(possible_trap, grid), depth - 1, action, alpha, beta, start_time)
                 score = max(score, min_value)
                 alpha = max(score, alpha)
                 if beta <= alpha:
                     break
         elif action == "getMove":
             for possible_move in grid.get_neighbors(player_pos, only_available=True):
-                min_value = self._min_value(self._simulate_move(possible_move, self.player_num, grid), depth - 1, action, alpha, beta)
+                min_value = self._min_value(self._simulate_move(possible_move, self.player_num, grid), depth - 1, action, alpha, beta, start_time)
                 score = max(score, min_value)
                 alpha = max(score, alpha)
                 if beta <= alpha:
